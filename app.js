@@ -4,20 +4,30 @@
 // Inicialização de Dados Padrão (Fallback rico se o app for aberto pela primeira vez)
 const defaultNews = [
     {
-        id: 1,
+        id: 1003,
+        titulo: "Alcoolismo entre os jovens: vamos falar sobre isto?",
+        categoria: "Saúde & Educação",
+        imagem: "img/artigo-alcoolismo.jpg",
+        conteudo: "Um texto de leitura em Inglês, que descreve o alcoolismo como um dos maiores problemas de dependência em Moçambique, serve de ponto de partida para uma conversa que a nossa comunidade escolar não pode adiar.\nO artigo lembra que os números de pessoas em tratamento mostram apenas uma parte do problema, porque a maioria das pessoas com dependência do álcool nunca procura ajuda médica. Chama ainda a atenção para a publicidade que faz o consumo de bebidas parecer algo social e inteligente, e para a venda de álcool perto de escolas.\nO que podes fazer? Informa-te: o álcool é uma droga e o consumo precoce faz mal à saúde e ao rendimento escolar. Não cedas à pressão do grupo, porque dizer \"não\" também é coragem. E se estás preocupado com um colega ou familiar, fala com um professor, com a Direção da escola ou procura a unidade sanitária mais próxima.",
+        autor: "Equipa ESED Connect",
+        data: "30/10/2026",
+        expiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 dias de vida
+    },
+    {
+        id: 1001,
         titulo: "Início das Inscrições para o Clube de Ciências ESED 2026",
         categoria: "Eventos",
-        imagem: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600",
+        imagem: "img/escola-1.jpg",
         conteudo: "Estão abertas as inscrições para o Clube de Ciências da Escola Secundária Emília Dausse. Este ano teremos foco em projetos de robótica e programação de baixo custo. As vagas são limitadas aos alunos da 10ª, 11ª e 12ª classes. Dirige-te à sala dos professores para garantir o teu lugar.",
         autor: "Direção ESED",
         data: "14/07/2026",
         expiracao: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString() // 15 dias de vida
     },
     {
-        id: 2,
+        id: 1002,
         titulo: "Calendário Oficial do Torneio Inter-Turmas de Futebol",
         categoria: "Desporto",
-        imagem: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600",
+        imagem: "img/escola-2.jpg",
         conteudo: "A nossa escola vai ferver! Na próxima segunda-feira inicia o campeonato inter-turmas de futebol. Os jogos acontecerão no campo principal durante os intervalos maiores e no período da tarde. Confere a tabela de confrontos e vem apoiar a tua turma!",
         autor: "Educação Física",
         data: "12/07/2026",
@@ -39,7 +49,21 @@ const defaultTraffic = [
 ];
 
 // Inicializar armazenamento local persistente
-if (!localStorage.getItem("esed_news")) localStorage.setItem("esed_news", JSON.stringify(defaultNews));
+// Atualiza as notícias de exemplo em quem já abriu o site antes (mantém as notícias publicadas pelos utilizadores)
+const NEWS_SEED_VERSION = "2026-10-30";
+const oldSeedTitles = [
+    "Início das Inscrições para o Clube de Ciências ESED 2026",
+    "Calendário Oficial do Torneio Inter-Turmas de Futebol"
+];
+if (localStorage.getItem("esed_news_seed_version") !== NEWS_SEED_VERSION) {
+    let storedNews = [];
+    try { storedNews = JSON.parse(localStorage.getItem("esed_news")) || []; } catch (e) { storedNews = []; }
+    const seedTitles = defaultNews.map(n => n.titulo).concat(oldSeedTitles);
+    const seedIds = defaultNews.map(n => n.id);
+    const userNews = storedNews.filter(n => !seedTitles.includes(n.titulo) && !seedIds.includes(n.id));
+    localStorage.setItem("esed_news", JSON.stringify(defaultNews.concat(userNews)));
+    localStorage.setItem("esed_news_seed_version", NEWS_SEED_VERSION);
+}
 if (!localStorage.getItem("esed_books")) localStorage.setItem("esed_books", JSON.stringify(defaultBooks));
 if (!localStorage.getItem("esed_book_suggestions")) localStorage.setItem("esed_book_suggestions", JSON.stringify([]));
 if (!localStorage.getItem("sugestoes_locais")) localStorage.setItem("sugestoes_locais", JSON.stringify([]));
@@ -310,7 +334,7 @@ function publishNews(event) {
     event.preventDefault();
     const title = document.getElementById("newsTitle").value;
     const category = document.getElementById("newsCategory").value;
-    const cover = document.getElementById("newsCoverImage").value || "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=600";
+    const cover = document.getElementById("newsCoverImage").value || "img/escola-1.jpg";
     const content = document.getElementById("newsContent").value;
     const validityDays = parseInt(document.getElementById("newsValidity").value);
 
